@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>重機位置管理パズル UI</title>
+  <!-- Google Fonts: Outfit & Inter for premium typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="./style.css">
+  <!-- Vue 3 Global Build CDN -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+  <div id="app" :data-theme="theme" v-cloak>
+    
+    <!-- HEADER -->
+    <header class="header">
+      <div class="logo-section">
+        <!-- SVG Truck Logo -->
+        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path>
+          <path d="M19 18h2a1 1 0 0 0 1-1v-5.14a1 1 0 0 0-.29-.71L19.3 9.3a1 1 0 0 0-.7-.3H14"></path>
+          <circle cx="7" cy="18" r="2"></circle>
+          <circle cx="17" cy="18" r="2"></circle>
+        </svg>
+        <span class="logo-text">HEAVY-GEAR MAP</span>
+      </div>
+      
+      <div class="controls-section">
+        <!-- Theme Switcher -->
+        <button class="btn btn-icon-only" @click="toggleTheme" :title="theme === 'light' ? 'ダークモードへ' : 'ライトモードへ'">
+          <!-- Sun Icon (for dark theme active) / Moon Icon (for light theme active) -->
+          <svg v-if="theme === 'dark'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+          <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+        </button>
+        
+        <!-- Tab Switches -->
+        <button class="btn" :class="{ 'btn-primary': currentView === 'map' }" @click="currentView = 'map'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line></svg>
+          マップ配置
+        </button>
+        <button class="btn" :class="{ 'btn-primary': currentView === 'master' }" @click="currentView = 'master'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          マスタ設定
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN APP WRAPPER -->
+    <div class="main-container" v-show="currentView === 'map'">
+      
+      <!-- SIDEBAR: UNPLACED VEHICLES & AREA SELECT -->
+      <aside class="sidebar">
+        <!-- Parking Selector -->
+        <div class="sidebar-section">
+          <h3 class="sidebar-title">駐車場選択</h3>
+          <div class="parking-selector-list">
+            <button 
+              v-for="p in parkings" 
+              :key="p.id" 
+              class="parking-selector-btn"
+              :class="{ active: selectedParkingId === p.id }"
+              @click="selectParking(p.id)"
+            >
+              {{ p.name }} ({{ p.cols }}×{{ p.rows }})
+            </button>
+          </div>
+        </div>
+
+        <!-- Vehicle Tracker Search & List -->
+        <div class="sidebar-section" style="max-height: 320px; display: flex; flex-direction: column; min-height: 150px;">
+          <h3 class="sidebar-title">重機を探す (現在地)</h3>
+          <div class="search-box">
+            <input 
+              type="text" 
+              v-model="searchQuery" 
+              class="search-input" 
+              placeholder="重機名で検索..."
+            >
+            <svg class="search-icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </div>
+          <div class="tracker-list">
+            <div 
+              v-for="v in filteredVehicles" 
+              :key="v.id" 
+              class="tracker-item"
+              @click="trackVehicle(v)"
+              :title="v.name + 'の位置を表示します'"
+            >
+              <div class="tracker-item-info">
+                <svg class="tracker-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path :d="getIconPath(v.icon)"></path>
+                </svg>
+                <span class="tracker-item-name">{{ v.name }}</span>
+              </div>
+              <span class="tracker-loc-badge" :class="getVehicleLocation(v.id).type">
+                {{ getVehicleLocation(v.id).label }}
+              </span>
+            </div>
+            <div v-if="filteredVehicles.length === 0" style="text-align: center; color: var(--text-muted); font-size: 0.75rem; padding: 1rem 0;">
+              該当する重機はありません
+            </div>
+          </div>
+        </div>
+
+        <!-- Unplaced Vehicles List (Tray) -->
+        <div class="sidebar-section" style="flex: 1; display: flex; flex-direction: column;">
+          <h3 class="sidebar-title">
+            <span>未配置の重機</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">{{ unplacedVehicles.length }} 台</span>
+          </h3>
+          
+          <div 
+            class="vehicle-tray" 
+            @pointerdown="onTrayPointerDown"
+          >
+            <div v-if="unplacedVehicles.length === 0" style="grid-column: 1/-1; text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 2rem 0;">
+              すべての重機が配置済みです
+            </div>
+            <div 
+              v-for="v in unplacedVehicles" 
+              :key="v.id" 
+              class="tray-vehicle-item"
+              :class="{ highlighted: highlightedVehicleId === v.id }"
+              :data-vehicle-id="v.id"
+            >
+              <!-- Dinamic SVG Icon -->
+              <svg class="tray-vehicle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path :d="getIconPath(v.icon)"></path>
+              </svg>
+              <div class="tray-vehicle-name">{{ v.name }}</div>
+              <div class="tray-vehicle-size">{{ v.width }} × {{ v.height }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Control Help Info -->
+        <div class="sidebar-section" style="background-color: var(--bg-tertiary);">
+          <h4 style="font-size: 0.8rem; font-weight: 700; margin-bottom: 0.25rem;">操作ガイド</h4>
+          <p style="font-size: 0.7rem; color: var(--text-secondary); line-height: 1.4;">
+            ・重機をドラッグしてマップに配置<br>
+            ・配置した重機をタップで回転・撤去<br>
+            ・「マップ編集」で柱（駐車不可）や通路を設定
+          </p>
+        </div>
+      </aside>
+
+      <!-- WORKSPACE: GRID MAP -->
+      <main class="workspace-area">
+        <div class="workspace-header">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <h2 class="workspace-title">{{ activeParking?.name }}</h2>
+            <span v-if="isMapEditMode" class="edit-mode-indicator">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+              マップ編集モード中
+            </span>
+          </div>
+
+          <!-- Map Edit Mode Toggles -->
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <div v-if="isMapEditMode" class="map-tool-list">
+              <button 
+                class="map-tool-btn" 
+                :class="{ active: activeMapTool === 'blocked' }"
+                @click="activeMapTool = 'blocked'"
+                title="駐車不可セル（柱など）を設置"
+              >
+                <span style="display: inline-block; width: 10px; height: 10px; background-color: var(--cell-blocked); border-radius: 2px;"></span>
+                駐車不可
+              </button>
+              <button 
+                class="map-tool-btn" 
+                :class="{ active: activeMapTool === 'path' }"
+                @click="activeMapTool = 'path'"
+                title="通路（駐車推奨外）を設置"
+              >
+                <span style="display: inline-block; width: 10px; height: 10px; background-color: var(--cell-path); border-radius: 2px;"></span>
+                通路
+              </button>
+              <button 
+                class="map-tool-btn" 
+                :class="{ active: activeMapTool === 'normal' }"
+                @click="activeMapTool = 'normal'"
+                title="通常駐車可能セルに戻す"
+              >
+                <span style="display: inline-block; width: 10px; height: 10px; background-color: var(--cell-empty); border: 1px solid var(--border-color); border-radius: 2px;"></span>
+                駐車可
+              </button>
+            </div>
+
+            <button class="btn" :class="{ 'btn-primary': isMapEditMode }" @click="toggleMapEditMode">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+              {{ isMapEditMode ? '編集完了' : '障害物・通路を編集' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- GRID MAP DISPLAY -->
+        <div class="grid-container-wrapper" ref="mapWrapper" @pointermove="onMapPointerMove">
+          <div 
+            class="grid-container" 
+            :class="{ 'map-edit-active': isMapEditMode }"
+            :style="{ 
+              gridTemplateColumns: `repeat(${activeParking?.cols || 10}, 48px)`,
+              gridTemplateRows: `repeat(${activeParking?.rows || 10}, 48px)`
+            }"
+            ref="mapGrid"
+          >
+            <!-- Background Cells -->
+            <template v-if="activeParking">
+              <div 
+                v-for="row in activeParking.rows" 
+                :key="'r-'+row" 
+                class="cell-row-contents" 
+                style="display: contents;"
+              >
+                <div 
+                  v-for="col in activeParking.cols" 
+                  :key="'c-'+col" 
+                  class="grid-cell"
+                  :class="getCellClass(col - 1, row - 1)"
+                  :data-x="col - 1"
+                  :data-y="row - 1"
+                  @pointerdown="onCellPointerDown($event, col - 1, row - 1)"
+                >
+                  <span class="cell-coords">{{ getColLetter(col - 1) }}{{ row }}</span>
+                </div>
+              </div>
+            </template>
+
+            <!-- Placed Heavy Machineries (Absolutely positioned) -->
+            <div 
+              v-for="(pos, idx) in activePositions" 
+              :key="pos.vehicleId" 
+              class="placed-vehicle"
+              :class="{ 
+                selected: selectedVehicleId === pos.vehicleId,
+                dragging: activeDrag && activeDrag.vehicleId === pos.vehicleId,
+                highlighted: highlightedVehicleId === pos.vehicleId
+              }"
+              :style="getVehicleStyle(pos)"
+              @pointerdown="onVehiclePointerDown($event, pos, idx)"
+            >
+              <!-- Rotation Toolbar Overlay -->
+              <div class="vehicle-action-overlay" v-if="selectedVehicleId === pos.vehicleId && !activeDrag" @pointerdown.stop>
+                <!-- Rotate Left -->
+                <button class="overlay-btn" @click.stop="rotateVehicle(pos, -90)" title="左に90度回転">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                </button>
+                <!-- Rotate Right -->
+                <button class="overlay-btn" @click.stop="rotateVehicle(pos, 90)" title="右に90度回転">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path></svg>
+                </button>
+                <!-- Remove from Map -->
+                <!-- <button class="overlay-btn btn-remove" @click.stop="removeVehicleFromMap(pos.vehicleId)" title="マップから撤去">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                </button> -->
+              </div>
+
+              <!-- Content wrapper counter-rotated to prevent inverted labels -->
+              <div class="vehicle-inner">
+                <!-- Visual pointer indicating the vehicle front/direction -->
+                <div class="vehicle-front-indicator"></div>
+                
+                <svg 
+                  class="vehicle-icon" 
+                  :style="getCounterRotateStyle(pos.rotation)" 
+                  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                >
+                  <path :d="getIconPath(getVehicleDetails(pos.vehicleId)?.icon)"></path>
+                </svg>
+                <div class="vehicle-name-label" :style="getCounterRotateStyle(pos.rotation)">
+                  {{ getVehicleDetails(pos.vehicleId)?.name }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Drag Ghost Preview Element -->
+            <div 
+              v-if="activeDrag" 
+              class="placed-vehicle dragging" 
+              :style="getDragGhostStyle()"
+            >
+              <div class="vehicle-inner">
+                <svg class="vehicle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path :d="getIconPath(activeDrag.vehicle?.icon)"></path>
+                </svg>
+                <div class="vehicle-name-label">{{ activeDrag.vehicle?.name }}</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </main>
+
+    </div>
+
+    <!-- MASTER ADMIN SETTINGS VIEW -->
+    <div class="main-container" v-show="currentView === 'master'">
+      <div class="master-settings-container">
+        
+        <!-- PARKING MASTER CARD -->
+        <div class="settings-card">
+          <h3 class="card-title">駐車場設定</h3>
+          
+          <form @submit.prevent="saveParking" style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div class="form-group">
+              <label>駐車場名</label>
+              <input type="text" v-model="parkingForm.name" class="form-input" placeholder="例: 第3駐車場" required>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>横幅 (グリッド数)</label>
+                <input type="number" v-model.number="parkingForm.cols" class="form-input" min="3" max="30" required>
+              </div>
+              <div class="form-group">
+                <label>縦幅 (グリッド数)</label>
+                <input type="number" v-model.number="parkingForm.rows" class="form-input" min="3" max="30" required>
+              </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">
+              <button type="submit" class="btn btn-primary" style="flex: 1;">
+                {{ parkingForm.id ? '駐車場情報を更新' : '新規駐車場を追加' }}
+              </button>
+              <button type="button" class="btn" v-if="parkingForm.id" @click="resetParkingForm">キャンセル</button>
+            </div>
+          </form>
+
+          <!-- Parking Master List -->
+          <div class="master-list-wrapper">
+            <div v-for="p in parkings" :key="p.id" class="master-list-item">
+              <div class="master-item-info">
+                <span class="master-item-title">{{ p.name }}</span>
+                <span class="master-item-desc">({{ p.cols }} × {{ p.rows }} マス)</span>
+              </div>
+              <div style="display: flex; gap: 0.25rem;">
+                <button class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" @click="editParking(p)">編集</button>
+                <button class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" @click="deleteParking(p.id)" :disabled="parkings.length <= 1">削除</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HEAVY VEHICLE MASTER CARD -->
+        <div class="settings-card">
+          <h3 class="card-title">重機マスタ登録</h3>
+          
+          <form @submit.prevent="saveVehicle" style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div class="form-group">
+              <label>重機・車両名</label>
+              <input type="text" v-model="vehicleForm.name" class="form-input" placeholder="例: 大型クレーンA" required>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>横幅サイズ (マス)</label>
+                <input type="number" v-model.number="vehicleForm.width" class="form-input" min="1" max="10" required>
+              </div>
+              <div class="form-group">
+                <label>縦幅サイズ (マス)</label>
+                <input type="number" v-model.number="vehicleForm.height" class="form-input" min="1" max="10" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>アイコン形状</label>
+              <select v-model="vehicleForm.icon" class="form-select" required>
+                <option value="truck">トラック (標準)</option>
+                <option value="tractor">トラクター・ショベル</option>
+                <option value="wrench">クレーン・高所作業車</option>
+                <option value="cog">その他特殊重機 (ギア)</option>
+              </select>
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">
+              <button type="submit" class="btn btn-primary" style="flex: 1;">
+                {{ vehicleForm.id ? '重機情報を更新' : '新規重機を追加' }}
+              </button>
+              <button type="button" class="btn" v-if="vehicleForm.id" @click="resetVehicleForm">キャンセル</button>
+            </div>
+          </form>
+
+          <!-- Heavy Vehicle Master List -->
+          <div class="master-list-wrapper">
+            <div v-for="v in vehicles" :key="v.id" class="master-list-item">
+              <div class="master-item-info">
+                <!-- Mini icon indicator -->
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--accent-color);">
+                  <path :d="getIconPath(v.icon)"></path>
+                </svg>
+                <span class="master-item-title">{{ v.name }}</span>
+                <span class="master-item-desc">({{ v.width }}×{{ v.height }}マス)</span>
+              </div>
+              <div style="display: flex; gap: 0.25rem;">
+                <button class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" @click="editVehicle(v)">編集</button>
+                <button class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" @click="deleteVehicle(v.id)">削除</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- FOOTER STATUS BAR -->
+    <footer class="footer">
+      <div>
+        <span>動作環境: HTML5 & Vue 3 Local-First UI | </span>
+        <span style="font-weight: 600;" :style="{ color: theme === 'light' ? '#2563eb' : '#60a5fa' }">
+          {{ theme === 'light' ? '屋外向けライトモード' : 'オフィス向けダークモード' }} 動作中
+        </span>
+      </div>
+      <div>
+        <span>現場重機パズル配置システム v1.0.0</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- VUE APPLICATION LOGIC -->
+  <script>
+    const { createApp, ref, computed, onMounted, watch, nextTick } = Vue;
+
+    createApp({
+      setup() {
+        // --- SCREEN STATE ---
+        const currentView = ref('map'); // 'map' | 'master'
+        const theme = ref('light'); // 'light' | 'dark'
+        const searchQuery = ref(''); // For search query input
+        const highlightedVehicleId = ref(null); // Tracks the blinking focus vehicle ID
+        
+        // --- MASTER DATA ---
+        const parkings = ref([]);
+        const vehicles = ref([]);
+        const positions = ref({}); // { [parkingId]: [{ vehicleId, x, y, rotation }] }
+        
+        // --- MAP WORKSPACE STATE ---
+        const selectedParkingId = ref('');
+        const selectedVehicleId = ref(null);
+        
+        // --- MAP EDIT MODE STATE ---
+        const isMapEditMode = ref(false);
+        const activeMapTool = ref('blocked'); // 'blocked' | 'path' | 'normal'
+        const isPainting = ref(false); // Map paint drag state
+
+        // --- FORMS STATE ---
+        const parkingForm = ref({ id: '', name: '', cols: 12, rows: 10 });
+        const vehicleForm = ref({ id: '', name: '', width: 2, height: 1, icon: 'truck' });
+
+        // --- DRAG & DROP POINTER STATE ---
+        const activeDrag = ref(null);
+        // Elements references (bound automatically by Vue matching ref name)
+        const mapGrid = ref(null);
+        const mapWrapper = ref(null);
+
+        // --- COMPASS & SVG ICON PATH DICTIONARY ---
+        const getIconPath = (iconName) => {
+          const paths = {
+            truck: "M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2M19 18h2a1 1 0 0 0 1-1v-5.14a1 1 0 0 0-.29-.71L19.3 9.3a1 1 0 0 0-.7-.3H14M7 18a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM17 18a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z",
+            tractor: "M3 12h11M14 6v8M14 8h5a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-5M3 18a3 3 0 1 1 6 0 3 3 0 0 1-6 0ZM15 16a4 4 0 1 1 8 0 4 4 0 0 1-8 0ZM8 10V6a2 2 0 0 0-2-2H3",
+            wrench: "M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z",
+            cog: "M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"
+          };
+          return paths[iconName] || paths.truck;
+        };
+
+        // --- COMPUTED PROPERTIES ---
+        const activeParking = computed(() => {
+          return parkings.value.find(p => p.id === selectedParkingId.value) || null;
+        });
+
+        const activePositions = computed(() => {
+          if (!selectedParkingId.value) return [];
+          return positions.value[selectedParkingId.value] || [];
+        });
+
+        // Vehicles NOT currently placed in the selected parking map
+        const unplacedVehicles = computed(() => {
+          const placedIds = new Set();
+          // Collect all placed vehicles across ALL parkings to prevent duplicate placing
+          Object.values(positions.value).forEach(posList => {
+            posList.forEach(pos => placedIds.add(pos.vehicleId));
+          });
+          return vehicles.value.filter(v => !placedIds.has(v.id));
+        });
+
+        // Filtered vehicles list based on search text input
+        const filteredVehicles = computed(() => {
+          if (!searchQuery.value.trim()) return vehicles.value;
+          const query = searchQuery.value.toLowerCase().trim();
+          return vehicles.value.filter(v => v.name.toLowerCase().includes(query));
+        });
+
+        // --- INITIAL DATA & LOCALSTORAGE ---
+        const loadInitialData = () => {
+          const storedParkings = localStorage.getItem('hg_parkings');
+          const storedVehicles = localStorage.getItem('hg_vehicles');
+          const storedPositions = localStorage.getItem('hg_positions');
+          const storedTheme = localStorage.getItem('hg_theme');
+
+          if (storedTheme) theme.value = storedTheme;
+
+          if (storedParkings && storedVehicles && storedPositions) {
+            parkings.value = JSON.parse(storedParkings);
+            vehicles.value = JSON.parse(storedVehicles);
+            positions.value = JSON.parse(storedPositions);
+          } else {
+            // Generate seed mock data (aligned with sample.png)
+            const seedParkings = [
+              { 
+                id: 'p1', 
+                name: '第1駐車場', 
+                cols: 14, 
+                rows: 10, 
+                cells: {
+                  '0-0': 'blocked',
+                  '13-0': 'blocked',
+                  '13-1': 'blocked',
+                  '6-3': 'path',
+                  '6-4': 'path',
+                  '6-5': 'path'
+                } 
+              },
+              { id: 'p2', name: '第2駐車場', cols: 10, rows: 8, cells: {} }
+            ];
+
+            const seedVehicles = [
+              { id: 'v1', name: 'ダンプトラックA', width: 4, height: 2, icon: 'truck' },
+              { id: 'v2', name: 'ダンプトラックB', width: 4, height: 2, icon: 'truck' },
+              { id: 'v3', name: 'フォークリフトA', width: 1, height: 2, icon: 'tractor' },
+              { id: 'v4', name: 'フォークリフトB', width: 1, height: 2, icon: 'tractor' },
+              { id: 'v5', name: 'ロードローラーA', width: 2, height: 1, icon: 'wrench' },
+              { id: 'v6', name: 'ロードローラーB', width: 2, height: 1, icon: 'wrench' },
+              { id: 'v7', name: 'ロードローラーC', width: 2, height: 1, icon: 'wrench' },
+              { id: 'v8', name: 'クレーン作業車', width: 3, height: 2, icon: 'cog' }
+            ];
+
+            const seedPositions = {
+              p1: [
+                { vehicleId: 'v1', x: 2, y: 0, rotation: 0 },
+                { vehicleId: 'v2', x: 2, y: 2, rotation: 0 },
+                { vehicleId: 'v3', x: 0, y: 1, rotation: 90 },
+                { vehicleId: 'v4', x: 0, y: 3, rotation: 90 },
+                { vehicleId: 'v5', x: 10, y: 1, rotation: 0 },
+                { vehicleId: 'v6', x: 12, y: 2, rotation: 0 },
+                { vehicleId: 'v7', x: 12, y: 4, rotation: 0 }
+              ],
+              p2: []
+            };
+
+            parkings.value = seedParkings;
+            vehicles.value = seedVehicles;
+            positions.value = seedPositions;
+            saveToStorage();
+          }
+
+          if (parkings.value.length > 0) {
+            selectedParkingId.value = parkings.value[0].id;
+          }
+        };
+
+        const saveToStorage = () => {
+          localStorage.setItem('hg_parkings', JSON.stringify(parkings.value));
+          localStorage.setItem('hg_vehicles', JSON.stringify(vehicles.value));
+          localStorage.setItem('hg_positions', JSON.stringify(positions.value));
+        };
+
+        // --- LIFE CYCLE WRITING ---
+        onMounted(() => {
+          loadInitialData();
+          
+          // Disable default gestures on body when dragging to prevent zoom/scroll
+          document.body.addEventListener('touchmove', (e) => {
+            if (activeDrag.value) {
+              e.preventDefault();
+            }
+          }, { passive: false });
+        });
+
+        // Watchers to auto save state changes
+        watch([parkings, vehicles, positions], () => {
+          saveToStorage();
+        }, { deep: true });
+
+        // Watch theme changes to update HTML root attribute
+        watch(theme, (newTheme) => {
+          document.documentElement.setAttribute('data-theme', newTheme);
+          localStorage.setItem('hg_theme', newTheme);
+        }, { immediate: true });
+
+        // --- THEME & VIEW CONTROLS ---
+        const toggleTheme = () => {
+          theme.value = theme.value === 'light' ? 'dark' : 'light';
+        };
+
+        const selectParking = (id) => {
+          selectedParkingId.value = id;
+          selectedVehicleId.value = null;
+          isMapEditMode.value = false;
+        };
+
+        // --- GRID LETTERS (A, B, C...) ---
+        const getColLetter = (index) => {
+          // Returns A, B, C... Z, AA, AB etc.
+          let letter = "";
+          let temp = index;
+          while (temp >= 0) {
+            letter = String.fromCharCode((temp % 26) + 97) + letter; // Lowercase matching sample.png (a, b, c...)
+            temp = Math.floor(temp / 26) - 1;
+          }
+          return letter;
+        };
+
+        const getCellClass = (x, y) => {
+          if (!activeParking.value) return '';
+          const status = activeParking.value.cells[`${x}-${y}`];
+          if (status === 'blocked') return 'cell-blocked';
+          if (status === 'path') return 'cell-path';
+          return '';
+        };
+
+        // --- MAP EDIT MODE CELL CLICKS ---
+        const toggleMapEditMode = () => {
+          isMapEditMode.value = !isMapEditMode.value;
+          selectedVehicleId.value = null; // Unselect vehicles
+        };
+
+        const onCellPointerDown = (event, x, y) => {
+          if (!isMapEditMode.value || !activeParking.value) return;
+          
+          isPainting.value = true;
+          paintCell(x, y);
+
+          // Add temporary mouseup handler to window to end painting safely
+          const stopPainting = () => {
+            isPainting.value = false;
+            window.removeEventListener('pointerup', stopPainting);
+          };
+          window.addEventListener('pointerup', stopPainting);
+        };
+
+        const paintCell = (x, y) => {
+          if (!activeParking.value) return;
+          if (!activeParking.value.cells) activeParking.value.cells = {};
+          
+          const coordKey = `${x}-${y}`;
+          if (activeMapTool.value === 'normal') {
+            delete activeParking.value.cells[coordKey];
+          } else {
+            activeParking.value.cells[coordKey] = activeMapTool.value;
+          }
+        };
+
+        // --- VEHICLE DETAILS AND HELPERS ---
+        const getVehicleDetails = (vehicleId) => {
+          return vehicles.value.find(v => v.id === vehicleId) || null;
+        };
+
+        const getActualDimensions = (vehicle, rotation) => {
+          // If rotated 90 or 270 degrees, dimensions (width and height) swap on grid
+          const isRotated = (rotation / 90) % 2 !== 0;
+          return {
+            w: isRotated ? vehicle.height : vehicle.width,
+            h: isRotated ? vehicle.width : vehicle.height
+          };
+        };
+
+        // Style helper for positioned vehicle on grid
+        const getVehicleStyle = (pos) => {
+          const vehicle = getVehicleDetails(pos.vehicleId);
+          if (!vehicle) return {};
+
+          const cellSize = 48; // Must match CSS 48px
+          const cellGap = 1;   // CSS gap: 1px
+          const pad = 1;       // CSS padding: 1px
+          
+          // Compute correct width and height considering gaps
+          const wPx = vehicle.width * cellSize + (vehicle.width - 1) * cellGap;
+          const hPx = vehicle.height * cellSize + (vehicle.height - 1) * cellGap;
+
+          // Rotation shifts visually, but positioning is locked to top-left of the bounding box.
+          const isRotated = (pos.rotation / 90) % 2 !== 0;
+          
+          let tx = pad + pos.x * (cellSize + cellGap);
+          let ty = pad + pos.y * (cellSize + cellGap);
+
+          let transform = `rotate(${pos.rotation}deg)`;
+          
+          if (isRotated) {
+            // Adjust translation to center-align the swapped bounding box
+            const diff = (vehicle.width - vehicle.height) * (cellSize + cellGap) / 2;
+            transform = `translate(${diff}px, ${-diff}px) rotate(${pos.rotation}deg)`;
+          }
+
+          return {
+            left: `${tx}px`,
+            top: `${ty}px`,
+            width: `${wPx}px`,
+            height: `${hPx}px`,
+            transform: transform
+          };
+        };
+
+        // Counter-rotation style to keep labels upright
+        const getCounterRotateStyle = (rotation) => {
+          if (!rotation) return {};
+          return {
+            transform: `rotate(${-rotation}deg)`
+          };
+        };
+
+        // --- VEHICLE SELECTION & ROTATION ---
+        const rotateVehicle = (pos, degree) => {
+          let newRotation = (pos.rotation + degree) % 360;
+          if (newRotation < 0) newRotation += 360;
+          
+          // Validate if rotated bounds fit within map. If not, snap inside boundary.
+          const vehicle = getVehicleDetails(pos.vehicleId);
+          if (vehicle && activeParking.value) {
+            const dims = getActualDimensions(vehicle, newRotation);
+            if (pos.x + dims.w > activeParking.value.cols) {
+              pos.x = Math.max(0, activeParking.value.cols - dims.w);
+            }
+            if (pos.y + dims.h > activeParking.value.rows) {
+              pos.y = Math.max(0, activeParking.value.rows - dims.h);
+            }
+          }
+          
+          pos.rotation = newRotation;
+        };
+
+        const removeVehicleFromMap = (vehicleId) => {
+          if (!selectedParkingId.value) return;
+          positions.value[selectedParkingId.value] = positions.value[selectedParkingId.value].filter(
+            p => p.vehicleId !== vehicleId
+          );
+          selectedVehicleId.value = null;
+        };
+
+        // --- POINTER DRAG & DROP ENGINE (TOUCH FRIENDLY) ---
+        
+        // Starts dragging from the UNPLACED vehicles sidebar tray
+        const onTrayPointerDown = (event) => {
+          const itemEl = event.target.closest('.tray-vehicle-item');
+          if (!itemEl || isMapEditMode.value) return;
+
+          const vehicleId = itemEl.dataset.vehicleId;
+          const vehicle = getVehicleDetails(vehicleId);
+          if (!vehicle) return;
+
+          event.preventDefault();
+          selectedVehicleId.value = null;
+
+          const rect = itemEl.getBoundingClientRect();
+          const startX = event.clientX;
+          const startY = event.clientY;
+
+          // Initialize drag data
+          activeDrag.value = {
+            vehicleId,
+            vehicle,
+            isFromTray: true,
+            width: vehicle.width,
+            height: vehicle.height,
+            rotation: 0,
+            // Track dimensions
+            wPx: vehicle.width * 48,
+            hPx: vehicle.height * 48,
+            // Screen cursor offsets
+            cursorX: startX,
+            cursorY: startY,
+            offsetX: event.clientX - rect.left,
+            offsetY: event.clientY - rect.top,
+            gridX: -1,
+            gridY: -1
+          };
+
+          // Setup capture listeners
+          document.addEventListener('pointermove', onGlobalPointerMove);
+          document.addEventListener('pointerup', onGlobalPointerUp);
+        };
+
+        // Starts dragging a vehicle already placed on the map
+        const onVehiclePointerDown = (event, pos, index) => {
+          if (isMapEditMode.value) return;
+
+          event.stopPropagation();
+          event.preventDefault();
+          
+          selectedVehicleId.value = pos.vehicleId;
+
+          const targetEl = event.currentTarget;
+          const rect = targetEl.getBoundingClientRect();
+          const vehicle = getVehicleDetails(pos.vehicleId);
+
+          activeDrag.value = {
+            vehicleId: pos.vehicleId,
+            vehicle,
+            isFromTray: false,
+            index,
+            width: vehicle.width,
+            height: vehicle.height,
+            rotation: pos.rotation,
+            // Track dimensions
+            wPx: rect.width,
+            hPx: rect.height,
+            // Initial relative offsets
+            cursorX: event.clientX,
+            cursorY: event.clientY,
+            offsetX: event.clientX - rect.left,
+            offsetY: event.clientY - rect.top,
+            gridX: pos.x,
+            gridY: pos.y
+          };
+
+          document.addEventListener('pointermove', onGlobalPointerMove);
+          document.addEventListener('pointerup', onGlobalPointerUp);
+        };
+
+        const onGlobalPointerMove = (event) => {
+          if (!activeDrag.value) return;
+
+          activeDrag.value.cursorX = event.clientX;
+          activeDrag.value.cursorY = event.clientY;
+
+          // Calculate where the cursor is relative to the Map Grid Container
+          if (mapGrid.value) {
+            const gridRect = mapGrid.value.getBoundingClientRect();
+            
+            // Pointer position relative to map grid top-left, adjusted for initial grab offset
+            const relativeX = event.clientX - gridRect.left - activeDrag.value.offsetX;
+            const relativeY = event.clientY - gridRect.top - activeDrag.value.offsetY;
+
+            // Map grid cells coordinates (taking 1px padding and 49px pitch into account)
+            let targetGridX = Math.round((relativeX - 1) / 49);
+            let targetGridY = Math.round((relativeY - 1) / 49);
+
+            // Clamp positions to valid grid dimensions
+            const dims = getActualDimensions(activeDrag.value.vehicle, activeDrag.value.rotation);
+            const maxCols = activeParking.value ? activeParking.value.cols : 10;
+            const maxRows = activeParking.value ? activeParking.value.rows : 10;
+
+            targetGridX = Math.max(0, Math.min(targetGridX, maxCols - dims.w));
+            targetGridY = Math.max(0, Math.min(targetGridY, maxRows - dims.h));
+
+            activeDrag.value.gridX = targetGridX;
+            activeDrag.value.gridY = targetGridY;
+          }
+        };
+
+        const onGlobalPointerUp = (event) => {
+          if (!activeDrag.value) return;
+
+          const drag = activeDrag.value;
+          activeDrag.value = null;
+
+          document.removeEventListener('pointermove', onGlobalPointerMove);
+          document.removeEventListener('pointerup', onGlobalPointerUp);
+
+          // Verify if pointer was dropped inside the Map Area
+          if (mapGrid.value) {
+            const gridRect = mapGrid.value.getBoundingClientRect();
+            const pad = 20; // Allow slight boundary padding
+            
+            const inBounds = (
+              event.clientX >= gridRect.left - pad &&
+              event.clientX <= gridRect.right + pad &&
+              event.clientY >= gridRect.top - pad &&
+              event.clientY <= gridRect.bottom + pad
+            );
+
+            if (inBounds && drag.gridX !== -1 && drag.gridY !== -1) {
+              // Valid Drop! Update or Add position
+              if (drag.isFromTray) {
+                // Add new position
+                if (!positions.value[selectedParkingId.value]) {
+                  positions.value[selectedParkingId.value] = [];
+                }
+                positions.value[selectedParkingId.value].push({
+                  vehicleId: drag.vehicleId,
+                  x: drag.gridX,
+                  y: drag.gridY,
+                  rotation: drag.rotation
+                });
+                selectedVehicleId.value = drag.vehicleId; // Select the dropped item
+              } else {
+                // Update existing position
+                const pos = positions.value[selectedParkingId.value][drag.index];
+                if (pos) {
+                  pos.x = drag.gridX;
+                  pos.y = drag.gridY;
+                }
+              }
+            } else if (!drag.isFromTray) {
+              // Dropped OUTSIDE map -> remove it (return to tray)
+              removeVehicleFromMap(drag.vehicleId);
+            }
+          }
+        };
+
+        // Drag Preview Styling
+        const getDragGhostStyle = () => {
+          if (!activeDrag.value || !mapGrid.value) return { display: 'none' };
+          
+          const drag = activeDrag.value;
+          const gridRect = mapGrid.value.getBoundingClientRect();
+
+          // Absolute position on screen, converted to relative workspace coordinate
+          const tx = drag.cursorX - gridRect.left - drag.offsetX;
+          const ty = drag.cursorY - gridRect.top - drag.offsetY;
+
+          // Apply rotation styles mirroring the target
+          const isRotated = (drag.rotation / 90) % 2 !== 0;
+          
+          const wPx = drag.vehicle.width * 48 + (drag.vehicle.width - 1) * 1;
+          const hPx = drag.vehicle.height * 48 + (drag.vehicle.height - 1) * 1;
+
+          let transform = `translate(${tx}px, ${ty}px) rotate(${drag.rotation}deg)`;
+          
+          if (isRotated) {
+            const diff = (drag.vehicle.width - drag.vehicle.height) * 49 / 2;
+            transform = `translate(${tx + diff}px, ${ty - diff}px) rotate(${drag.rotation}deg)`;
+          }
+
+          return {
+            left: `0px`,
+            top: `0px`,
+            width: `${wPx}px`,
+            height: `${hPx}px`,
+            transform: transform,
+            opacity: 0.6,
+            zIndex: 1000,
+            borderStyle: 'dashed'
+          };
+        };
+
+        // Mouse paint move inside cell map edit mode
+        const onMapPointerMove = (event) => {
+          if (!isMapEditMode.value || !isPainting.value) return;
+          
+          // Get grid element under cursor
+          const element = document.elementFromPoint(event.clientX, event.clientY);
+          const cell = element ? element.closest('.grid-cell') : null;
+          
+          if (cell && cell.dataset.x !== undefined && cell.dataset.y !== undefined) {
+            const x = parseInt(cell.dataset.x);
+            const y = parseInt(cell.dataset.y);
+            paintCell(x, y);
+          }
+        };
+
+        // --- MASTER ADMIN DATA CONTROLS ---
+
+        // PARKING MASTER SAVE / EDIT
+        const saveParking = () => {
+          if (parkingForm.value.id) {
+            // Edit mode
+            const index = parkings.value.findIndex(p => p.id === parkingForm.value.id);
+            if (index !== -1) {
+              const prev = parkings.value[index];
+              parkings.value[index] = {
+                ...prev,
+                name: parkingForm.value.name,
+                cols: parkingForm.value.cols,
+                rows: parkingForm.value.rows
+              };
+            }
+          } else {
+            // Create mode
+            const newId = 'p_' + Date.now();
+            parkings.value.push({
+              id: newId,
+              name: parkingForm.value.name,
+              cols: parkingForm.value.cols,
+              rows: parkingForm.value.rows,
+              cells: {}
+            });
+            positions.value[newId] = [];
+            selectedParkingId.value = newId; // switch to new parking
+          }
+          resetParkingForm();
+        };
+
+        const editParking = (p) => {
+          parkingForm.value = { id: p.id, name: p.name, cols: p.cols, rows: p.rows };
+        };
+
+        const deleteParking = (id) => {
+          if (parkings.value.length <= 1) return;
+          
+          if (confirm('この駐車場を削除しますか？配置されていた重機はトレイに戻ります。')) {
+            // Remove positions for this parking
+            delete positions.value[id];
+            
+            // Delete parking
+            parkings.value = parkings.value.filter(p => p.id !== id);
+            
+            if (selectedParkingId.value === id) {
+              selectedParkingId.value = parkings.value[0].id;
+            }
+            selectedVehicleId.value = null;
+            resetParkingForm();
+          }
+        };
+
+        const resetParkingForm = () => {
+          parkingForm.value = { id: '', name: '', cols: 12, rows: 10 };
+        };
+
+        // VEHICLE MASTER SAVE / EDIT
+        const saveVehicle = () => {
+          if (vehicleForm.value.id) {
+            // Edit mode
+            const index = vehicles.value.findIndex(v => v.id === vehicleForm.value.id);
+            if (index !== -1) {
+              vehicles.value[index] = {
+                id: vehicleForm.value.id,
+                name: vehicleForm.value.name,
+                width: vehicleForm.value.width,
+                height: vehicleForm.value.height,
+                icon: vehicleForm.value.icon
+              };
+              
+              // Validate all placements of this vehicle across maps to snap to new sizes
+              Object.keys(positions.value).forEach(pId => {
+                const pos = positions.value[pId].find(pos => pos.vehicleId === vehicleForm.value.id);
+                if (pos) {
+                  const parking = parkings.value.find(p => p.id === pId);
+                  const dims = getActualDimensions(vehicleForm.value, pos.rotation);
+                  if (parking) {
+                    if (pos.x + dims.w > parking.cols) pos.x = Math.max(0, parking.cols - dims.w);
+                    if (pos.y + dims.h > parking.rows) pos.y = Math.max(0, parking.rows - dims.h);
+                  }
+                }
+              });
+            }
+          } else {
+            // Create mode
+            const newId = 'v_' + Date.now();
+            vehicles.value.push({
+              id: newId,
+              name: vehicleForm.value.name,
+              width: vehicleForm.value.width,
+              height: vehicleForm.value.height,
+              icon: vehicleForm.value.icon
+            });
+          }
+          resetVehicleForm();
+        };
+
+        const editVehicle = (v) => {
+          vehicleForm.value = { id: v.id, name: v.name, width: v.width, height: v.height, icon: v.icon };
+        };
+
+        const deleteVehicle = (id) => {
+          if (confirm('この重機をマスタから完全に削除しますか？マップ上の配置も削除されます。')) {
+            // Remove from placements
+            Object.keys(positions.value).forEach(pId => {
+              positions.value[pId] = positions.value[pId].filter(pos => pos.vehicleId !== id);
+            });
+            
+            // Delete vehicle
+            vehicles.value = vehicles.value.filter(v => v.id !== id);
+            
+            if (selectedVehicleId.value === id) {
+              selectedVehicleId.value = null;
+            }
+            resetVehicleForm();
+          }
+        };
+
+        const resetVehicleForm = () => {
+          vehicleForm.value = { id: '', name: '', width: 2, height: 1, icon: 'truck' };
+        };
+
+        const getVehicleLocation = (vehicleId) => {
+          let foundParking = null;
+          let foundPos = null;
+          
+          for (const [pId, posList] of Object.entries(positions.value)) {
+            const pos = posList.find(p => p.vehicleId === vehicleId);
+            if (pos) {
+              foundParking = parkings.value.find(p => p.id === pId);
+              foundPos = pos;
+              break;
+            }
+          }
+
+          if (foundParking && foundPos) {
+            const colLetter = getColLetter(foundPos.x);
+            const rowNumber = foundPos.y + 1;
+            return {
+              type: 'placed',
+              label: `${foundParking.name} (${colLetter}${rowNumber})`,
+              parkingId: foundParking.id
+            };
+          }
+          
+          return {
+            type: 'unplaced',
+            label: '未配置 (トレイ)'
+          };
+        };
+
+        const trackVehicle = (vehicle) => {
+          const loc = getVehicleLocation(vehicle.id);
+          if (loc.type === 'placed') {
+            selectedParkingId.value = loc.parkingId;
+            selectedVehicleId.value = vehicle.id;
+            highlightedVehicleId.value = vehicle.id;
+            
+            setTimeout(() => {
+              if (highlightedVehicleId.value === vehicle.id) {
+                highlightedVehicleId.value = null;
+              }
+            }, 3200);
+
+            nextTick(() => {
+              const element = mapGrid.value ? mapGrid.value.querySelector('.placed-vehicle.selected') : null;
+              if (element && mapWrapper.value) {
+                const wrapperRect = mapWrapper.value.getBoundingClientRect();
+                const elemRect = element.getBoundingClientRect();
+                const scrollLeftAdjust = elemRect.left - wrapperRect.left - (wrapperRect.width / 2) + (elemRect.width / 2);
+                const scrollTopAdjust = elemRect.top - wrapperRect.top - (wrapperRect.height / 2) + (elemRect.height / 2);
+                mapWrapper.value.scrollBy({
+                  left: scrollLeftAdjust,
+                  top: scrollTopAdjust,
+                  behavior: 'smooth'
+                });
+              }
+            });
+          } else {
+            highlightedVehicleId.value = vehicle.id;
+            selectedVehicleId.value = null;
+            
+            setTimeout(() => {
+              if (highlightedVehicleId.value === vehicle.id) {
+                highlightedVehicleId.value = null;
+              }
+            }, 3200);
+
+            nextTick(() => {
+              const trayEl = document.querySelector('.vehicle-tray');
+              const itemEl = trayEl ? trayEl.querySelector(`[data-vehicle-id="${vehicle.id}"]`) : null;
+              if (itemEl && trayEl) {
+                itemEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+              }
+            });
+          }
+        };
+
+        // Global deselect when clicking outer canvas/grid background
+        onMounted(() => {
+          document.addEventListener('pointerdown', (e) => {
+            // Deselect selected vehicle if clicking elsewhere
+            if (selectedVehicleId.value && 
+                !e.target.closest('.placed-vehicle') && 
+                !e.target.closest('.vehicle-action-overlay')) {
+              selectedVehicleId.value = null;
+            }
+          });
+        });
+
+        return {
+          currentView,
+          theme,
+          searchQuery,
+          highlightedVehicleId,
+          parkings,
+          vehicles,
+          positions,
+          selectedParkingId,
+          selectedVehicleId,
+          isMapEditMode,
+          activeMapTool,
+          parkingForm,
+          vehicleForm,
+          activeDrag,
+          mapGrid,
+          mapWrapper,
+          
+          // Computed
+          filteredVehicles,
+          
+          // Methods
+          toggleTheme,
+          selectParking,
+          activeParking,
+          activePositions,
+          unplacedVehicles,
+          getIconPath,
+          getColLetter,
+          getCellClass,
+          toggleMapEditMode,
+          onCellPointerDown,
+          getVehicleDetails,
+          getVehicleStyle,
+          getCounterRotateStyle,
+          rotateVehicle,
+          removeVehicleFromMap,
+          getVehicleLocation,
+          trackVehicle,
+          
+          // Drag events
+          onTrayPointerDown,
+          onVehiclePointerDown,
+          getDragGhostStyle,
+          onMapPointerMove,
+          
+          // Forms
+          saveParking,
+          editParking,
+          deleteParking,
+          resetParkingForm,
+          saveVehicle,
+          editVehicle,
+          deleteVehicle,
+          resetVehicleForm
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>

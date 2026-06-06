@@ -1,0 +1,952 @@
+/* ==========================================================================
+   Design System & Variable Declarations (Light / Dark Mode)
+   ========================================================================== */
+:root {
+  /* Light Theme (Default) - Optimized for outdoor visibility */
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f1f5f9;
+  
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  
+  --border-color: #cbd5e1;
+  --border-focus: #3b82f6;
+  
+  /* Brand / Action Colors */
+  --accent-color: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-light: #eff6ff;
+  
+  /* Grid Cell Status Colors */
+  --cell-empty: #ffffff;
+  --cell-blocked: #64748b;      /* Gray for pillars/blocked areas */
+  --cell-path: #fef08a;         /* Soft yellow for path/non-parking areas */
+  --cell-border: #e2e8f0;
+  --grid-bg: #cbd5e1;
+  
+  /* Vehicle States */
+  --vehicle-bg: #3b82f6;
+  --vehicle-text: #ffffff;
+  --vehicle-border: #1d4ed8;
+  --vehicle-active-border: #f59e0b;
+  
+  /* Box Shadow */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-blur: blur(8px);
+}
+
+[data-theme="dark"] {
+  /* Dark Theme - Preferred for indoor/office use */
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  
+  --border-color: #475569;
+  --border-focus: #60a5fa;
+  
+  /* Brand / Action Colors */
+  --accent-color: #3b82f6;
+  --accent-hover: #60a5fa;
+  --accent-light: #1e293b;
+  
+  /* Grid Cell Status Colors */
+  --cell-empty: #1e293b;
+  --cell-blocked: #475569;
+  --cell-path: #713f12;         /* Dark golden-brown for pathway in dark mode */
+  --cell-border: #334155;
+  --grid-bg: #475569;
+  
+  /* Vehicle States */
+  --vehicle-bg: #2563eb;
+  --vehicle-text: #ffffff;
+  --vehicle-border: #60a5fa;
+  --vehicle-active-border: #fbbf24;
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+  --glass-bg: rgba(30, 41, 59, 0.8);
+  --glass-blur: blur(8px);
+}
+
+/* ==========================================================================
+   Global Resets & Typographical Styles
+   ========================================================================== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none; /* Prevent selection while dragging */
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.5;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
+}
+
+/* Scrollbar customization */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ==========================================================================
+   Layout & Typography
+   ========================================================================== */
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logo-icon {
+  color: var(--accent-color);
+  width: 28px;
+  height: 28px;
+}
+
+.logo-text {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  background: linear-gradient(135deg, var(--accent-color), #f59e0b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.controls-section {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* ==========================================================================
+   Interactive Buttons
+   ========================================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.btn-primary {
+  background-color: var(--accent-color);
+  color: #ffffff;
+  border-color: var(--accent-color);
+}
+
+.btn-primary:hover {
+  background-color: var(--accent-hover);
+  color: #ffffff;
+}
+
+.btn-danger {
+  background-color: #ef4444;
+  color: #ffffff;
+  border-color: #ef4444;
+}
+
+.btn-danger:hover {
+  background-color: #dc2626;
+  color: #ffffff;
+}
+
+.btn-icon-only {
+  padding: 0.5rem;
+  border-radius: 50%;
+}
+
+/* ==========================================================================
+   Navigation Tabs
+   ========================================================================== */
+.nav-tabs {
+  display: flex;
+  background-color: var(--bg-secondary);
+  padding: 0 1rem;
+  border-bottom: 1px solid var(--border-color);
+  gap: 0.5rem;
+  overflow-x: auto;
+}
+
+.tab-btn {
+  padding: 1rem 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  border: none;
+  background: none;
+  cursor: pointer;
+  position: relative;
+  white-space: nowrap;
+}
+
+.tab-btn:hover {
+  color: var(--text-primary);
+}
+
+.tab-btn.active {
+  color: var(--accent-color);
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: var(--accent-color);
+  border-radius: 3px 3px 0 0;
+}
+
+/* ==========================================================================
+   Main Application Area
+   ========================================================================== */
+.main-container {
+  display: flex;
+  flex: 1;
+  flex-direction: row;
+  height: calc(100vh - 65px - 53px); /* 100vh - header - tabs */
+  overflow: hidden;
+}
+
+@media (max-width: 1024px) {
+  .main-container {
+    flex-direction: column;
+    height: auto;
+    overflow: visible;
+  }
+}
+
+/* ==========================================================================
+   Sidebar (Unplaced vehicles & Controls)
+   ========================================================================== */
+.sidebar {
+  width: 320px;
+  background-color: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+    /* max-height: 400px; */
+  }
+}
+
+.sidebar-section {
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-section:last-child {
+  border-bottom: none;
+}
+
+.sidebar-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ==========================================================================
+   Parking Selection
+   ========================================================================== */
+.parking-selector-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.parking-selector-btn {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-tertiary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.parking-selector-btn.active {
+  background-color: var(--accent-light);
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   Unplaced Vehicles Tray
+   ========================================================================== */
+.vehicle-tray {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 0.75rem;
+  min-height: 120px;
+  padding: 0.5rem;
+  background-color: var(--bg-tertiary);
+  border-radius: 0.5rem;
+  border: 1px dashed var(--border-color);
+}
+
+.tray-vehicle-item {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  padding: 0.75rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: grab;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+}
+
+.tray-vehicle-item:active {
+  cursor: grabbing;
+}
+
+.tray-vehicle-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--accent-color);
+}
+
+.tray-vehicle-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--accent-color);
+  margin-bottom: 0.25rem;
+}
+
+.tray-vehicle-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  word-break: break-all;
+  line-height: 1.2;
+}
+
+.tray-vehicle-size {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin-top: 0.1rem;
+}
+
+/* ==========================================================================
+   Map & Workspace Area
+   ========================================================================== */
+.workspace-area {
+  flex: 1;
+  background-color: var(--bg-primary);
+  overflow: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+  .workspace-area {
+    padding: 1rem;
+    height: 500px;
+  }
+}
+
+.workspace-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.workspace-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.edit-mode-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background-color: var(--accent-light);
+  color: var(--accent-color);
+  border-radius: 9999px;
+  border: 1px solid var(--accent-color);
+}
+
+/* Tool selection list in map edit mode */
+.map-tool-list {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.map-tool-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+  cursor: pointer;
+}
+
+.map-tool-btn.active {
+  background-color: var(--accent-color);
+  color: #ffffff;
+  border-color: var(--accent-color);
+}
+
+/* ==========================================================================
+   Grid Container & Cells
+   ========================================================================== */
+.grid-container-wrapper {
+  overflow: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  background-color: var(--bg-secondary);
+  box-shadow: var(--shadow-md);
+  margin-bottom: 1rem;
+  flex: 1;
+  min-height: 350px;
+  text-align: -webkit-center;
+}
+
+.grid-container {
+  display: grid;
+  background-color: var(--grid-bg);
+  gap: 1px; /* 1px border between cells */
+  width: max-content;
+  position: relative;
+  padding: 1px;
+}
+
+.grid-cell {
+  background-color: var(--bg-secondary);
+  width: 48px; /* Cell dimension */
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: default;
+  transition: background-color 0.2s ease;
+}
+
+/* Map editing mode styles */
+.map-edit-active .grid-cell {
+  cursor: cell;
+}
+.map-edit-active .grid-cell:hover {
+  background-color: var(--bg-tertiary);
+  opacity: 0.9;
+}
+
+/* Special cell styles (high contrast) */
+.grid-cell.cell-blocked {
+  background-color: var(--cell-blocked);
+  /* Striped background pattern for accessibility/better outdoor view */
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 6px,
+    rgba(255, 255, 255, 0.15) 6px,
+    rgba(255, 255, 255, 0.15) 12px
+  );
+}
+
+.grid-cell.cell-path {
+  background-color: var(--cell-path);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 6px,
+    rgba(0, 0, 0, 0.03) 6px,
+    rgba(0, 0, 0, 0.03) 12px
+  );
+}
+
+/* Cell coordinates (useful for office admin planning) */
+.cell-coords {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 0.55rem;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Placed Vehicles (Draggable & Absolute positioning)
+   ========================================================================== */
+.placed-vehicle {
+  position: absolute;
+  background-color: var(--vehicle-bg);
+  border: 2px solid var(--vehicle-border);
+  border-radius: 0.375rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--vehicle-text);
+  cursor: grab;
+  box-shadow: var(--shadow-md);
+  z-index: 10;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  user-select: none;
+  touch-action: none; /* Crucial forPointer Events to work properly on mobile */
+  transform-origin: center center;
+  overflow: visible;
+}
+
+.placed-vehicle:active {
+  cursor: grabbing;
+  box-shadow: var(--shadow-lg);
+  opacity: 0.9;
+  z-index: 100;
+}
+
+.placed-vehicle.dragging {
+  pointer-events: none; /* Let events pass through to find drop target grid-cells */
+  opacity: 0.8;
+  border-style: dashed;
+}
+
+.placed-vehicle.selected {
+  border-color: var(--vehicle-active-border);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.4), var(--shadow-lg);
+}
+
+.vehicle-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 4px;
+  pointer-events: none; /* Handle dragging at parent element level */
+}
+
+/* Keep text/content scale responsive inside heavy machinery blocks */
+.vehicle-icon {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.2s ease;
+}
+
+.vehicle-name-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-align: center;
+  margin-top: 2px;
+  line-height: 1.1;
+  word-break: break-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6); /* High readability on mobile screen */
+}
+
+/* Compass indicator/arrow to denote front direction */
+.vehicle-front-indicator {
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 5px solid var(--vehicle-active-border);
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Placed Vehicle Menu Overlay (Toolbar)
+   ========================================================================== */
+.vehicle-action-overlay {
+  position: absolute;
+  top: -45px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  padding: 0.25rem;
+  display: flex;
+  gap: 0.25rem;
+  box-shadow: var(--shadow-lg);
+  z-index: 50;
+  white-space: nowrap;
+}
+
+.overlay-btn {
+  display: inline-flex;
+  padding: 0.3rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 0.25rem;
+  color: var(--text-secondary);
+}
+
+.overlay-btn:hover {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.overlay-btn.btn-remove {
+  color: #ef4444;
+}
+
+.overlay-btn.btn-remove:hover {
+  background-color: #fee2e2;
+}
+
+/* ==========================================================================
+   Master Admin Panel (Forms & Lists)
+   ========================================================================== */
+.master-settings-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  .master-settings-container {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+}
+
+.settings-card {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+}
+
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: var(--text-secondary);
+}
+
+.form-input, .form-select {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.form-input:focus, .form-select:focus {
+  outline: none;
+  border-color: var(--border-focus);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+/* List displaying master elements */
+.master-list-wrapper {
+  margin-top: 1rem;
+  flex: 1;
+  max-height: 250px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+}
+
+.master-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+}
+
+.master-list-item:last-child {
+  border-bottom: none;
+}
+
+.master-item-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.master-item-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.master-item-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   Footer & Instruction bar
+   ========================================================================== */
+.footer {
+  padding: 0.75rem 1.5rem;
+  background-color: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .footer {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+}
+
+/* ==========================================================================
+   Vehicle Search & Tracker List
+   ========================================================================== */
+.search-box {
+  position: relative;
+  margin-bottom: 0.75rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem 0.5rem 2rem;
+  font-size: 0.85rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--border-focus);
+}
+
+.search-icon-svg {
+  position: absolute;
+  left: 0.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.tracker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.tracker-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tracker-item:hover {
+  background-color: var(--accent-light);
+  border-color: var(--accent-color);
+  transform: translateX(2px);
+}
+
+.tracker-item-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.tracker-item-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.tracker-item:hover .tracker-item-icon {
+  color: var(--accent-color);
+}
+
+.tracker-item-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tracker-loc-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.4rem;
+  border-radius: 9999px;
+  white-space: nowrap;
+  background-color: var(--border-color);
+  color: var(--text-secondary);
+}
+
+.tracker-loc-badge.placed {
+  background-color: #dcfce7; /* Light green badge for placed */
+  color: #15803d;
+}
+
+[data-theme="dark"] .tracker-loc-badge.placed {
+  background-color: #14532d;
+  color: #4ade80;
+}
+
+.tracker-loc-badge.unplaced {
+  background-color: #f1f5f9;
+  color: #64748b;
+}
+
+[data-theme="dark"] .tracker-loc-badge.unplaced {
+  background-color: #334155;
+  color: #94a3b8;
+}
+
+/* Placed Vehicle Tracking Highlight Blink */
+@keyframes pulse-highlight {
+  0%, 100% {
+    box-shadow: 0 0 0 0px rgba(245, 158, 11, 0), var(--shadow-md);
+    border-color: var(--vehicle-border);
+    filter: brightness(1);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(245, 158, 11, 0.5), 0 0 15px rgba(245, 158, 11, 0.8);
+    border-color: #fbbf24;
+    filter: brightness(1.4);
+  }
+}
+
+.placed-vehicle.highlighted {
+  animation: pulse-highlight 0.8s ease-in-out 4; /* 4 times blinking */
+  z-index: 1000 !important;
+}
